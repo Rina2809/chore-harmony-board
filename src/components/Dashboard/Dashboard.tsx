@@ -1,8 +1,9 @@
 
 import React, { useState } from 'react';
 import Header from './Header';
-import KanbanColumn from './KanbanColumn';
+import ChoreCard from './ChoreCard';
 import ChoreModal from './ChoreModal';
+import FilterChips from './FilterChips';
 import { Chore } from './ChoreCard';
 
 interface DashboardProps {
@@ -15,6 +16,7 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
   const [boards] = useState(['Home Board', 'Work Board', 'Personal Board']);
   const [isChoreModalOpen, setIsChoreModalOpen] = useState(false);
   const [editingChore, setEditingChore] = useState<Chore | undefined>();
+  const [activeFilters, setActiveFilters] = useState<string[]>([]);
 
   const [chores, setChores] = useState<Chore[]>([
     {
@@ -51,6 +53,29 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
       status: 'done',
       priority: 'low',
       recurring: 'daily'
+    },
+    {
+      id: '4',
+      title: 'Take out trash',
+      description: 'Empty all bins and take to curb',
+      dueDate: new Date(2024, 6, 27),
+      category: 'Cleaning',
+      icon: '🗑️',
+      assignees: [{ id: '1', name: 'John Doe' }],
+      status: 'todo',
+      priority: 'medium',
+      recurring: 'weekly'
+    },
+    {
+      id: '5',
+      title: 'Walk the dog',
+      description: 'Morning walk around the block',
+      category: 'Pet Care',
+      icon: '🐕',
+      assignees: [{ id: '1', name: 'John Doe' }],
+      status: 'done',
+      priority: 'low',
+      recurring: 'daily'
     }
   ]);
 
@@ -66,12 +91,10 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
 
   const handleSaveChore = (choreData: Partial<Chore>) => {
     if (editingChore) {
-      // Update existing chore
       setChores(prev => prev.map(chore => 
         chore.id === editingChore.id ? { ...chore, ...choreData } : chore
       ));
     } else {
-      // Add new chore
       const newChore: Chore = {
         id: Date.now().toString(),
         title: choreData.title || '',
@@ -91,7 +114,6 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
   const handleStatusChange = (choreId: string, newStatus: Chore['status']) => {
     setChores(prev => prev.map(chore => {
       if (chore.id === choreId) {
-        // If moving to done and it's recurring, create a new chore
         if (newStatus === 'done' && chore.recurring && chore.recurring !== 'none') {
           const newDueDate = new Date();
           switch (chore.recurring) {
@@ -106,7 +128,6 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
               break;
           }
           
-          // Create new recurring chore
           const newChore: Chore = {
             ...chore,
             id: Date.now().toString(),
@@ -125,12 +146,16 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
     }));
   };
 
-  const todoChores = chores.filter(chore => chore.status === 'todo');
-  const inProgressChores = chores.filter(chore => chore.status === 'in-progress');
-  const doneChores = chores.filter(chore => chore.status === 'done');
+  const handleRemoveFilter = (filter: string) => {
+    setActiveFilters(prev => prev.filter(f => f !== filter));
+  };
+
+  const handleAddFilter = (filter: string) => {
+    setActiveFilters(prev => [...prev, filter]);
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       <Header
         currentBoard={currentBoard}
         boards={boards}
@@ -140,29 +165,30 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
         user={user}
       />
 
-      <main className="p-6">
-        <div className="flex space-x-6 overflow-x-auto">
-          <KanbanColumn
-            title="To Do"
-            chores={todoChores}
-            status="todo"
-            onEditChore={handleEditChore}
-            onStatusChange={handleStatusChange}
-          />
-          <KanbanColumn
-            title="In Progress"
-            chores={inProgressChores}
-            status="in-progress"
-            onEditChore={handleEditChore}
-            onStatusChange={handleStatusChange}
-          />
-          <KanbanColumn
-            title="Done"
-            chores={doneChores}
-            status="done"
-            onEditChore={handleEditChore}
-            onStatusChange={handleStatusChange}
-          />
+      <FilterChips 
+        activeFilters={activeFilters}
+        onRemoveFilter={handleRemoveFilter}
+        onAddFilter={handleAddFilter}
+      />
+
+      <main className="px-4 py-6 md:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          {/* Responsive grid layout matching Figma */}
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
+            {chores.map((chore, index) => (
+              <div 
+                key={chore.id} 
+                className="animate-fade-in"
+                style={{ animationDelay: `${index * 20}ms` }}
+              >
+                <ChoreCard
+                  chore={chore}
+                  onEdit={handleEditChore}
+                  onStatusChange={handleStatusChange}
+                />
+              </div>
+            ))}
+          </div>
         </div>
       </main>
 

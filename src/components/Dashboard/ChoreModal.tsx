@@ -63,6 +63,8 @@ const ChoreModal = ({ isOpen, onClose, onSave, chore, isEditing = false }: Chore
     { name: 'Pet Care', icon: '🐕' },
   ];
 
+  const iconOptions = ['🧹', '🍳', '🛒', '🔧', '🌱', '🐕', '🗑️', '🚗', '💡', '📱', '👕', '🏠'];
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.title?.trim()) return;
@@ -88,33 +90,37 @@ const ChoreModal = ({ isOpen, onClose, onSave, chore, isEditing = false }: Chore
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px]">
-        <DialogHeader>
-          <DialogTitle>
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto bg-white">
+        <DialogHeader className="border-b border-gray-100 pb-4">
+          <DialogTitle className="text-xl font-semibold text-gray-900">
             {isEditing ? 'Edit Chore' : 'Add New Chore'}
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="title">Title</Label>
+        <form onSubmit={handleSubmit} className="space-y-6 pt-4">
+          {/* 2-column grid on desktop, single column on mobile as per Figma */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Title - full width */}
+            <div className="lg:col-span-2 space-y-2">
+              <Label htmlFor="title" className="text-sm font-medium text-gray-700">Title</Label>
               <Input
                 id="title"
                 value={formData.title || ''}
                 onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
                 placeholder="Enter chore title"
+                className="border-gray-200 focus:border-[#22C55E] focus:ring-[#22C55E]"
                 required
               />
             </div>
 
+            {/* Category */}
             <div className="space-y-2">
-              <Label htmlFor="category">Category</Label>
+              <Label htmlFor="category" className="text-sm font-medium text-gray-700">Category</Label>
               <Select value={formData.category} onValueChange={handleCategoryChange}>
-                <SelectTrigger>
+                <SelectTrigger className="border-gray-200 focus:border-[#22C55E]">
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-white border-gray-200">
                   {categories.map((category) => (
                     <SelectItem key={category.name} value={category.name}>
                       <div className="flex items-center space-x-2">
@@ -126,82 +132,113 @@ const ChoreModal = ({ isOpen, onClose, onSave, chore, isEditing = false }: Chore
                 </SelectContent>
               </Select>
             </div>
+
+            {/* Icon picker */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-gray-700">Icon</Label>
+              <div className="grid grid-cols-6 gap-2 p-3 border border-gray-200 rounded-lg">
+                {iconOptions.map((icon) => (
+                  <button
+                    key={icon}
+                    type="button"
+                    onClick={() => setFormData(prev => ({ ...prev, icon }))}
+                    className={`w-8 h-8 rounded-lg flex items-center justify-center text-lg hover:bg-gray-100 transition-colors ${
+                      formData.icon === icon ? 'bg-[#22C55E] bg-opacity-10 ring-2 ring-[#22C55E]' : ''
+                    }`}
+                  >
+                    {icon}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
 
+          {/* Description - full width */}
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description" className="text-sm font-medium text-gray-700">Description</Label>
             <Textarea
               id="description"
               value={formData.description || ''}
               onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
               placeholder="Enter chore description (optional)"
               rows={3}
+              className="border-gray-200 focus:border-[#22C55E] focus:ring-[#22C55E]"
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Date and Interval */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label>Due Date</Label>
+              <Label className="text-sm font-medium text-gray-700">Due Date</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
                     className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !dueDate && "text-muted-foreground"
+                      "w-full justify-start text-left font-normal border-gray-200 hover:bg-gray-50",
+                      !dueDate && "text-gray-500"
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     {dueDate ? format(dueDate, "PPP") : <span>Pick a date</span>}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
+                <PopoverContent className="w-auto p-0 bg-white border-gray-200">
                   <Calendar
                     mode="single"
                     selected={dueDate}
                     onSelect={setDueDate}
                     initialFocus
-                    className="pointer-events-auto"
                   />
                 </PopoverContent>
               </Popover>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="priority">Priority</Label>
-              <Select value={formData.priority} onValueChange={(priority: 'low' | 'medium' | 'high') => setFormData(prev => ({ ...prev, priority }))}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select priority" />
+              <Label htmlFor="recurring" className="text-sm font-medium text-gray-700">Repeat Interval</Label>
+              <Select value={formData.recurring} onValueChange={(recurring: 'daily' | 'weekly' | 'monthly' | 'none') => setFormData(prev => ({ ...prev, recurring }))}>
+                <SelectTrigger className="border-gray-200 focus:border-[#22C55E]">
+                  <SelectValue placeholder="Select repeat interval" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="low">Low</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="high">High</SelectItem>
+                <SelectContent className="bg-white border-gray-200">
+                  <SelectItem value="none">No repeat</SelectItem>
+                  <SelectItem value="daily">Daily</SelectItem>
+                  <SelectItem value="weekly">Weekly</SelectItem>
+                  <SelectItem value="monthly">Monthly</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
 
+          {/* Priority */}
           <div className="space-y-2">
-            <Label htmlFor="recurring">Repeat</Label>
-            <Select value={formData.recurring} onValueChange={(recurring: 'daily' | 'weekly' | 'monthly' | 'none') => setFormData(prev => ({ ...prev, recurring }))}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select repeat interval" />
+            <Label htmlFor="priority" className="text-sm font-medium text-gray-700">Priority</Label>
+            <Select value={formData.priority} onValueChange={(priority: 'low' | 'medium' | 'high') => setFormData(prev => ({ ...prev, priority }))}>
+              <SelectTrigger className="border-gray-200 focus:border-[#22C55E]">
+                <SelectValue placeholder="Select priority" />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">No repeat</SelectItem>
-                <SelectItem value="daily">Daily</SelectItem>
-                <SelectItem value="weekly">Weekly</SelectItem>
-                <SelectItem value="monthly">Monthly</SelectItem>
+              <SelectContent className="bg-white border-gray-200">
+                <SelectItem value="low">Low Priority</SelectItem>
+                <SelectItem value="medium">Medium Priority</SelectItem>
+                <SelectItem value="high">High Priority</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
-          <div className="flex justify-end space-x-2 pt-4">
-            <Button type="button" variant="outline" onClick={onClose}>
+          {/* Modal Footer */}
+          <div className="flex justify-end space-x-3 pt-6 border-t border-gray-100">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={onClose}
+              className="px-6 py-2 border-gray-200 text-gray-700 hover:bg-gray-50"
+            >
               Cancel
             </Button>
-            <Button type="submit" className="bg-green-600 hover:bg-green-700">
+            <Button 
+              type="submit" 
+              className="bg-[#22C55E] hover:bg-[#16A34A] text-white px-6 py-2 shadow-sm"
+            >
               {isEditing ? 'Update' : 'Create'} Chore
             </Button>
           </div>
