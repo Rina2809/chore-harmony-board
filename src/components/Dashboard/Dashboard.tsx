@@ -1,0 +1,180 @@
+
+import React, { useState } from 'react';
+import Header from './Header';
+import KanbanColumn from './KanbanColumn';
+import ChoreModal from './ChoreModal';
+import { Chore } from './ChoreCard';
+
+interface DashboardProps {
+  user: { id: string; name: string; email: string };
+  onLogout: () => void;
+}
+
+const Dashboard = ({ user, onLogout }: DashboardProps) => {
+  const [currentBoard, setCurrentBoard] = useState('Home Board');
+  const [boards] = useState(['Home Board', 'Work Board', 'Personal Board']);
+  const [isChoreModalOpen, setIsChoreModalOpen] = useState(false);
+  const [editingChore, setEditingChore] = useState<Chore | undefined>();
+
+  const [chores, setChores] = useState<Chore[]>([
+    {
+      id: '1',
+      title: 'Clean the kitchen',
+      description: 'Deep clean counters, sink, and stovetop',
+      dueDate: new Date(2024, 6, 28),
+      category: 'Cleaning',
+      icon: '🧹',
+      assignees: [{ id: '1', name: 'John Doe' }],
+      status: 'todo',
+      priority: 'high',
+      recurring: 'weekly'
+    },
+    {
+      id: '2',
+      title: 'Grocery shopping',
+      description: 'Buy ingredients for the week',
+      dueDate: new Date(2024, 6, 26),
+      category: 'Shopping',
+      icon: '🛒',
+      assignees: [{ id: '1', name: 'John Doe' }],
+      status: 'in-progress',
+      priority: 'medium',
+      recurring: 'weekly'
+    },
+    {
+      id: '3',
+      title: 'Water plants',
+      description: 'Water all indoor and outdoor plants',
+      category: 'Outdoor',
+      icon: '🌱',
+      assignees: [{ id: '1', name: 'John Doe' }],
+      status: 'done',
+      priority: 'low',
+      recurring: 'daily'
+    }
+  ]);
+
+  const handleAddChore = () => {
+    setEditingChore(undefined);
+    setIsChoreModalOpen(true);
+  };
+
+  const handleEditChore = (chore: Chore) => {
+    setEditingChore(chore);
+    setIsChoreModalOpen(true);
+  };
+
+  const handleSaveChore = (choreData: Partial<Chore>) => {
+    if (editingChore) {
+      // Update existing chore
+      setChores(prev => prev.map(chore => 
+        chore.id === editingChore.id ? { ...chore, ...choreData } : chore
+      ));
+    } else {
+      // Add new chore
+      const newChore: Chore = {
+        id: Date.now().toString(),
+        title: choreData.title || '',
+        description: choreData.description,
+        dueDate: choreData.dueDate,
+        category: choreData.category || 'Cleaning',
+        icon: choreData.icon || '🧹',
+        assignees: choreData.assignees || [{ id: user.id, name: user.name }],
+        status: choreData.status || 'todo',
+        priority: choreData.priority || 'medium',
+        recurring: choreData.recurring || 'none'
+      };
+      setChores(prev => [...prev, newChore]);
+    }
+  };
+
+  const handleStatusChange = (choreId: string, newStatus: Chore['status']) => {
+    setChores(prev => prev.map(chore => {
+      if (chore.id === choreId) {
+        // If moving to done and it's recurring, create a new chore
+        if (newStatus === 'done' && chore.recurring && chore.recurring !== 'none') {
+          const newDueDate = new Date();
+          switch (chore.recurring) {
+            case 'daily':
+              newDueDate.setDate(newDueDate.getDate() + 1);
+              break;
+            case 'weekly':
+              newDueDate.setDate(newDueDate.getDate() + 7);
+              break;
+            case 'monthly':
+              newDueDate.setMonth(newDueDate.getMonth() + 1);
+              break;
+          }
+          
+          // Create new recurring chore
+          const newChore: Chore = {
+            ...chore,
+            id: Date.now().toString(),
+            status: 'todo',
+            dueDate: newDueDate
+          };
+          
+          setTimeout(() => {
+            setChores(prev => [...prev, newChore]);
+          }, 500);
+        }
+        
+        return { ...chore, status: newStatus };
+      }
+      return chore;
+    }));
+  };
+
+  const todoChores = chores.filter(chore => chore.status === 'todo');
+  const inProgressChores = chores.filter(chore => chore.status === 'in-progress');
+  const doneChores = chores.filter(chore => chore.status === 'done');
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Header
+        currentBoard={currentBoard}
+        boards={boards}
+        onBoardChange={setCurrentBoard}
+        onAddChore={handleAddChore}
+        onLogout={onLogout}
+        user={user}
+      />
+
+      <main className="p-6">
+        <div className="flex space-x-6 overflow-x-auto">
+          <KanbanColumn
+            title="To Do"
+            chores={todoChores}
+            status="todo"
+            onEditChore={handleEditChore}
+            onStatusChange={handleStatusChange}
+          />
+          <KanbanColumn
+            title="In Progress"
+            chores={inProgressChores}
+            status="in-progress"
+            onEditChore={handleEditChore}
+            onStatusChange={handleStatusChange}
+          />
+          <KanbanColumn
+            title="Done"
+            chores={doneChores}
+            status="done"
+            onEditChore={handleEditChore}
+            onStatusChange={handleStatusChange}
+          />
+        </div>
+      </main>
+
+      <ChoreModal
+        isOpen={isChoreModalOpen}
+        onClose={() => setIsChoreModalOpen(false)}
+        onSave={handleSaveChore}
+        chore={editingChore}
+        isEditing={!!editingChore}
+      />
+    </div>
+  );
+};
+
+export default Dashboard;
