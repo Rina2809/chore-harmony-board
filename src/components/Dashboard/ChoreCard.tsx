@@ -3,7 +3,7 @@ import React from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Calendar, Clock, MoreVertical } from 'lucide-react';
+import { Calendar, Clock, MoreVertical, Heart } from 'lucide-react';
 
 export interface Chore {
   id: string;
@@ -13,18 +13,20 @@ export interface Chore {
   category: string;
   icon: string;
   assignees: Array<{ id: string; name: string; avatar?: string }>;
-  status: 'todo' | 'in-progress' | 'done';
+  hatePoints: number;
   priority: 'low' | 'medium' | 'high';
   recurring?: 'daily' | 'weekly' | 'monthly' | 'none';
+  completedAt?: Date;
+  isCompleted: boolean;
 }
 
 interface ChoreCardProps {
   chore: Chore;
   onEdit: (chore: Chore) => void;
-  onStatusChange: (choreId: string, newStatus: Chore['status']) => void;
+  onToggleComplete: (choreId: string) => void;
 }
 
-const ChoreCard = ({ chore, onEdit, onStatusChange }: ChoreCardProps) => {
+const ChoreCard = ({ chore, onEdit, onToggleComplete }: ChoreCardProps) => {
   const categoryColors = {
     'Cleaning': 'bg-blue-100 text-blue-700',
     'Cooking': 'bg-orange-100 text-orange-700',
@@ -34,16 +36,26 @@ const ChoreCard = ({ chore, onEdit, onStatusChange }: ChoreCardProps) => {
     'Pet Care': 'bg-yellow-100 text-yellow-700',
   };
 
-  const statusLabels = {
-    'todo': 'To Do',
-    'in-progress': 'In Progress',
-    'done': 'Done'
+  const hatePointsLabels = {
+    1: 'Mildly Annoying',
+    2: 'I have done worse',
+    3: 'This is worse',
+    4: 'Hate it',
+    5: 'Really hate it',
+    6: 'Absolutely despise',
+    7: 'Pure agony'
   };
 
-  const isOverdue = chore.dueDate && new Date(chore.dueDate) < new Date();
+  const getHatePointsColor = (points: number) => {
+    if (points <= 2) return 'text-green-600';
+    if (points <= 4) return 'text-yellow-600';
+    return 'text-red-600';
+  };
+
+  const isOverdue = chore.dueDate && new Date(chore.dueDate) < new Date() && !chore.isCompleted;
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm hover:shadow-md hover:scale-[1.02] transition-all duration-200 cursor-pointer group">
+    <div className={`bg-white rounded-xl border border-gray-200 p-4 shadow-sm hover:shadow-md hover:scale-[1.02] transition-all duration-200 cursor-pointer group ${chore.isCompleted ? 'opacity-60' : ''}`}>
       <div className="flex items-start space-x-3">
         {/* Icon circle - 32x32px as per Figma */}
         <div className="flex-shrink-0">
@@ -55,11 +67,11 @@ const ChoreCard = ({ chore, onEdit, onStatusChange }: ChoreCardProps) => {
         <div className="flex-1 min-w-0">
           {/* Title - 16px semibold as per Figma */}
           <div className="flex items-start justify-between">
-            <h4 className="font-semibold text-gray-900 text-base leading-tight group-hover:text-[#22C55E] transition-colors">
+            <h4 className={`font-semibold text-gray-900 text-base leading-tight group-hover:text-[#22C55E] transition-colors ${chore.isCompleted ? 'line-through' : ''}`}>
               {chore.title}
             </h4>
             
-            {/* Status dropdown */}
+            {/* Actions dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-1 hover:bg-gray-100 rounded">
@@ -67,14 +79,8 @@ const ChoreCard = ({ chore, onEdit, onStatusChange }: ChoreCardProps) => {
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="bg-white shadow-lg border border-gray-200">
-                <DropdownMenuItem onClick={() => onStatusChange(chore.id, 'todo')}>
-                  To Do
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onStatusChange(chore.id, 'in-progress')}>
-                  In Progress
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onStatusChange(chore.id, 'done')}>
-                  Done
+                <DropdownMenuItem onClick={() => onToggleComplete(chore.id)}>
+                  {chore.isCompleted ? 'Mark Incomplete' : 'Mark Complete'}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => onEdit(chore)}>
                   Edit
@@ -91,6 +97,19 @@ const ChoreCard = ({ chore, onEdit, onStatusChange }: ChoreCardProps) => {
             >
               {chore.category}
             </Badge>
+          </div>
+
+          {/* Hate Points */}
+          <div className="flex items-center space-x-2 mt-2">
+            <div className="flex items-center space-x-1">
+              <Heart className={`w-3 h-3 ${getHatePointsColor(chore.hatePoints)}`} fill="currentColor" />
+              <span className={`text-xs font-medium ${getHatePointsColor(chore.hatePoints)}`}>
+                {chore.hatePoints}/7
+              </span>
+            </div>
+            <span className="text-xs text-gray-500">
+              {hatePointsLabels[chore.hatePoints as keyof typeof hatePointsLabels]}
+            </span>
           </div>
 
           {/* Due date and recurring info */}
@@ -112,10 +131,10 @@ const ChoreCard = ({ chore, onEdit, onStatusChange }: ChoreCardProps) => {
             )}
           </div>
 
-          {/* Bottom row: overlapping assignee avatars with count badge */}
+          {/* Bottom row: completion status and assignee avatars */}
           <div className="flex items-center justify-between mt-4">
             <div className="text-xs text-gray-500 font-medium">
-              {statusLabels[chore.status]}
+              {chore.isCompleted ? 'Completed' : 'Pending'}
             </div>
             
             {chore.assignees.length > 0 && (

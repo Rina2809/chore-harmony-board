@@ -4,6 +4,7 @@ import Header from './Header';
 import ChoreCard from './ChoreCard';
 import ChoreModal from './ChoreModal';
 import FilterChips from './FilterChips';
+import StatsSection from './StatsSection';
 import { Chore } from './ChoreCard';
 
 interface DashboardProps {
@@ -27,9 +28,10 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
       category: 'Cleaning',
       icon: '🧹',
       assignees: [{ id: '1', name: 'John Doe' }],
-      status: 'todo',
+      hatePoints: 5,
       priority: 'high',
-      recurring: 'weekly'
+      recurring: 'weekly',
+      isCompleted: false
     },
     {
       id: '2',
@@ -39,9 +41,10 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
       category: 'Shopping',
       icon: '🛒',
       assignees: [{ id: '1', name: 'John Doe' }],
-      status: 'in-progress',
+      hatePoints: 2,
       priority: 'medium',
-      recurring: 'weekly'
+      recurring: 'weekly',
+      isCompleted: false
     },
     {
       id: '3',
@@ -50,9 +53,11 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
       category: 'Outdoor',
       icon: '🌱',
       assignees: [{ id: '1', name: 'John Doe' }],
-      status: 'done',
+      hatePoints: 1,
       priority: 'low',
-      recurring: 'daily'
+      recurring: 'daily',
+      isCompleted: true,
+      completedAt: new Date()
     },
     {
       id: '4',
@@ -62,9 +67,10 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
       category: 'Cleaning',
       icon: '🗑️',
       assignees: [{ id: '1', name: 'John Doe' }],
-      status: 'todo',
+      hatePoints: 3,
       priority: 'medium',
-      recurring: 'weekly'
+      recurring: 'weekly',
+      isCompleted: false
     },
     {
       id: '5',
@@ -73,9 +79,11 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
       category: 'Pet Care',
       icon: '🐕',
       assignees: [{ id: '1', name: 'John Doe' }],
-      status: 'done',
+      hatePoints: 1,
       priority: 'low',
-      recurring: 'daily'
+      recurring: 'daily',
+      isCompleted: true,
+      completedAt: new Date()
     }
   ]);
 
@@ -103,18 +111,22 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
         category: choreData.category || 'Cleaning',
         icon: choreData.icon || '🧹',
         assignees: choreData.assignees || [{ id: user.id, name: user.name }],
-        status: choreData.status || 'todo',
+        hatePoints: choreData.hatePoints || 1,
         priority: choreData.priority || 'medium',
-        recurring: choreData.recurring || 'none'
+        recurring: choreData.recurring || 'none',
+        isCompleted: false
       };
       setChores(prev => [...prev, newChore]);
     }
   };
 
-  const handleStatusChange = (choreId: string, newStatus: Chore['status']) => {
+  const handleToggleComplete = (choreId: string) => {
     setChores(prev => prev.map(chore => {
       if (chore.id === choreId) {
-        if (newStatus === 'done' && chore.recurring && chore.recurring !== 'none') {
+        const isCompleting = !chore.isCompleted;
+        
+        if (isCompleting && chore.recurring && chore.recurring !== 'none') {
+          // Create a new recurring chore
           const newDueDate = new Date();
           switch (chore.recurring) {
             case 'daily':
@@ -131,7 +143,8 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
           const newChore: Chore = {
             ...chore,
             id: Date.now().toString(),
-            status: 'todo',
+            isCompleted: false,
+            completedAt: undefined,
             dueDate: newDueDate
           };
           
@@ -140,7 +153,11 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
           }, 500);
         }
         
-        return { ...chore, status: newStatus };
+        return { 
+          ...chore, 
+          isCompleted: isCompleting,
+          completedAt: isCompleting ? new Date() : undefined
+        };
       }
       return chore;
     }));
@@ -153,6 +170,11 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
   const handleAddFilter = (filter: string) => {
     setActiveFilters(prev => [...prev, filter]);
   };
+
+  // Filter chores based on active filters
+  const filteredChores = activeFilters.length > 0 
+    ? chores.filter(chore => activeFilters.includes(chore.category))
+    : chores;
 
   return (
     <div className="min-h-screen bg-white">
@@ -173,9 +195,12 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
 
       <main className="px-4 py-6 md:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
+          {/* Stats Section */}
+          <StatsSection chores={chores} />
+          
           {/* Responsive grid layout matching Figma */}
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
-            {chores.map((chore, index) => (
+            {filteredChores.map((chore, index) => (
               <div 
                 key={chore.id} 
                 className="animate-fade-in"
@@ -184,11 +209,20 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
                 <ChoreCard
                   chore={chore}
                   onEdit={handleEditChore}
-                  onStatusChange={handleStatusChange}
+                  onToggleComplete={handleToggleComplete}
                 />
               </div>
             ))}
           </div>
+
+          {filteredChores.length === 0 && (
+            <div className="text-center py-12">
+              <p className="text-gray-500 text-lg">No chores found</p>
+              <p className="text-gray-400 text-sm mt-2">
+                {activeFilters.length > 0 ? 'Try removing some filters' : 'Add your first chore to get started'}
+              </p>
+            </div>
+          )}
         </div>
       </main>
 
