@@ -1,10 +1,9 @@
-
 import React, { useState } from 'react';
 import Header from './Header';
-import ChoreCard from './ChoreCard';
 import ChoreModal from './ChoreModal';
 import FilterChips from './FilterChips';
 import StatsSection from './StatsSection';
+import ChoreBoard from './ChoreBoard';
 import { Chore } from './ChoreCard';
 
 interface DashboardProps {
@@ -198,31 +197,12 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
           {/* Stats Section */}
           <StatsSection chores={chores} />
           
-          {/* Responsive grid layout matching Figma */}
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
-            {filteredChores.map((chore, index) => (
-              <div 
-                key={chore.id} 
-                className="animate-fade-in"
-                style={{ animationDelay: `${index * 20}ms` }}
-              >
-                <ChoreCard
-                  chore={chore}
-                  onEdit={handleEditChore}
-                  onToggleComplete={handleToggleComplete}
-                />
-              </div>
-            ))}
-          </div>
-
-          {filteredChores.length === 0 && (
-            <div className="text-center py-12">
-              <p className="text-gray-500 text-lg">No chores found</p>
-              <p className="text-gray-400 text-sm mt-2">
-                {activeFilters.length > 0 ? 'Try removing some filters' : 'Add your first chore to get started'}
-              </p>
-            </div>
-          )}
+          {/* Chore Board */}
+          <ChoreBoard
+            chores={filteredChores}
+            onEdit={handleEditChore}
+            onToggleComplete={handleToggleComplete}
+          />
         </div>
       </main>
 
