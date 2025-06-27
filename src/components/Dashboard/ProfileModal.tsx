@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Camera, Upload } from 'lucide-react';
+import { Camera, Home } from 'lucide-react';
 
 interface User {
   id: string;
@@ -14,8 +14,7 @@ interface User {
   email: string;
   avatar?: string;
   bio?: string;
-  phone?: string;
-  location?: string;
+  households?: string[];
 }
 
 interface ProfileModalProps {
@@ -121,29 +120,28 @@ const ProfileModal = ({ isOpen, onClose, user, onSave }: ProfileModalProps) => {
             />
           </div>
 
-          {/* Phone */}
+          {/* Households */}
           <div className="space-y-2">
-            <Label htmlFor="phone" className="text-sm font-medium text-gray-700">Phone Number</Label>
-            <Input
-              id="phone"
-              type="tel"
-              value={formData.phone || ''}
-              onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-              placeholder="Enter your phone number"
-              className="border-gray-200 focus:border-[#22C55E] focus:ring-[#22C55E]"
-            />
-          </div>
-
-          {/* Location */}
-          <div className="space-y-2">
-            <Label htmlFor="location" className="text-sm font-medium text-gray-700">Location</Label>
-            <Input
-              id="location"
-              value={formData.location || ''}
-              onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
-              placeholder="Enter your location"
-              className="border-gray-200 focus:border-[#22C55E] focus:ring-[#22C55E]"
-            />
+            <Label className="text-sm font-medium text-gray-700">Households</Label>
+            <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+              <div className="flex items-center space-x-2 text-sm text-gray-600">
+                <Home className="w-4 h-4" />
+                <span>You are part of these households:</span>
+              </div>
+              <div className="mt-2 space-y-1">
+                {formData.households && formData.households.length > 0 ? (
+                  formData.households.map((household, index) => (
+                    <div key={index} className="bg-white px-3 py-2 rounded border text-sm">
+                      {household}
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-sm text-gray-500 italic">
+                    No households assigned yet
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
 
           {/* Bio */}

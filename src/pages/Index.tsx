@@ -9,8 +9,7 @@ interface User {
   email: string;
   avatar?: string;
   bio?: string;
-  phone?: string;
-  location?: string;
+  households?: string[];
 }
 
 const Index = () => {
@@ -21,8 +20,7 @@ const Index = () => {
       ...userData,
       avatar: '',
       bio: '',
-      phone: '',
-      location: ''
+      households: ['Home Board', 'Work Board']
     });
   };
 

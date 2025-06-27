@@ -13,8 +13,7 @@ interface User {
   email: string;
   avatar?: string;
   bio?: string;
-  phone?: string;
-  location?: string;
+  households?: string[];
 }
 
 interface DashboardProps {
@@ -137,6 +136,7 @@ const Dashboard = ({ user: initialUser, onLogout }: DashboardProps) => {
       if (chore.id === choreId) {
         const isCompleting = !chore.isCompleted;
         
+        // Only create a new recurring chore if we're completing it (not uncompleting)
         if (isCompleting && chore.recurring && chore.recurring !== 'none') {
           // Create a new recurring chore
           const newDueDate = new Date();
