@@ -7,13 +7,23 @@ interface User {
   id: string;
   name: string;
   email: string;
+  avatar?: string;
+  bio?: string;
+  phone?: string;
+  location?: string;
 }
 
 const Index = () => {
   const [user, setUser] = useState<User | null>(null);
 
-  const handleAuth = (userData: User) => {
-    setUser(userData);
+  const handleAuth = (userData: { id: string; name: string; email: string }) => {
+    setUser({
+      ...userData,
+      avatar: '',
+      bio: '',
+      phone: '',
+      location: ''
+    });
   };
 
   const handleLogout = () => {

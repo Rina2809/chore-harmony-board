@@ -3,7 +3,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Plus, ChevronDown, Settings, LogOut } from 'lucide-react';
+import { Plus, ChevronDown, Settings, LogOut, User } from 'lucide-react';
 
 interface HeaderProps {
   currentBoard: string;
@@ -11,10 +11,11 @@ interface HeaderProps {
   onBoardChange: (board: string) => void;
   onAddChore: () => void;
   onLogout: () => void;
-  user: { name: string; email: string };
+  onOpenProfile: () => void;
+  user: { name: string; email: string; avatar?: string };
 }
 
-const Header = ({ currentBoard, boards, onBoardChange, onAddChore, onLogout, user }: HeaderProps) => {
+const Header = ({ currentBoard, boards, onBoardChange, onAddChore, onLogout, onOpenProfile, user }: HeaderProps) => {
   return (
     <header className="bg-white border-b border-gray-100 px-4 py-4 md:px-6">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
@@ -55,16 +56,20 @@ const Header = ({ currentBoard, boards, onBoardChange, onAddChore, onLogout, use
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Avatar className="cursor-pointer hover:ring-2 hover:ring-[#22C55E] hover:ring-opacity-50 transition-all duration-200 w-10 h-10">
-                <AvatarImage src="" />
+                <AvatarImage src={user.avatar} />
                 <AvatarFallback className="bg-[#F3F4F6] text-gray-700 text-sm font-medium">
                   {user.name.split(' ').map(n => n[0]).join('')}
                 </AvatarFallback>
               </Avatar>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="bg-white shadow-lg border border-gray-200">
+              <DropdownMenuItem onClick={onOpenProfile} className="hover:bg-gray-50">
+                <User className="w-4 h-4 mr-2 text-gray-500" />
+                Profile Settings
+              </DropdownMenuItem>
               <DropdownMenuItem className="hover:bg-gray-50">
                 <Settings className="w-4 h-4 mr-2 text-gray-500" />
-                Settings
+                App Settings
               </DropdownMenuItem>
               <DropdownMenuItem onClick={onLogout} className="hover:bg-gray-50">
                 <LogOut className="w-4 h-4 mr-2 text-gray-500" />

@@ -1,20 +1,33 @@
 import React, { useState } from 'react';
 import Header from './Header';
 import ChoreModal from './ChoreModal';
+import ProfileModal from './ProfileModal';
 import FilterChips from './FilterChips';
 import StatsSection from './StatsSection';
 import ChoreBoard from './ChoreBoard';
 import { Chore } from './ChoreCard';
 
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  avatar?: string;
+  bio?: string;
+  phone?: string;
+  location?: string;
+}
+
 interface DashboardProps {
-  user: { id: string; name: string; email: string };
+  user: User;
   onLogout: () => void;
 }
 
-const Dashboard = ({ user, onLogout }: DashboardProps) => {
+const Dashboard = ({ user: initialUser, onLogout }: DashboardProps) => {
+  const [user, setUser] = useState<User>(initialUser);
   const [currentBoard, setCurrentBoard] = useState('Home Board');
   const [boards] = useState(['Home Board', 'Work Board', 'Personal Board']);
   const [isChoreModalOpen, setIsChoreModalOpen] = useState(false);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [editingChore, setEditingChore] = useState<Chore | undefined>();
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
 
@@ -175,6 +188,10 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
     ? chores.filter(chore => activeFilters.includes(chore.category))
     : chores;
 
+  const handleProfileSave = (userData: User) => {
+    setUser(userData);
+  };
+
   return (
     <div className="min-h-screen bg-white">
       <Header
@@ -182,6 +199,7 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
         boards={boards}
         onBoardChange={setCurrentBoard}
         onAddChore={handleAddChore}
+        onOpenProfile={() => setIsProfileModalOpen(true)}
         onLogout={onLogout}
         user={user}
       />
@@ -212,6 +230,13 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
         onSave={handleSaveChore}
         chore={editingChore}
         isEditing={!!editingChore}
+      />
+
+      <ProfileModal
+        isOpen={isProfileModalOpen}
+        onClose={() => setIsProfileModalOpen(false)}
+        user={user}
+        onSave={handleProfileSave}
       />
     </div>
   );
