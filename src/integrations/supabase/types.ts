@@ -9,7 +9,183 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      chore_assignments: {
+        Row: {
+          assigned_at: string | null
+          chore_id: string | null
+          id: string
+          user_id: string | null
+        }
+        Insert: {
+          assigned_at?: string | null
+          chore_id?: string | null
+          id?: string
+          user_id?: string | null
+        }
+        Update: {
+          assigned_at?: string | null
+          chore_id?: string | null
+          id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chore_assignments_chore_id_fkey"
+            columns: ["chore_id"]
+            isOneToOne: false
+            referencedRelation: "chores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chores: {
+        Row: {
+          category: string
+          completed_at: string | null
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          due_date: string | null
+          hate_points: number
+          household_id: string | null
+          icon: string
+          id: string
+          is_completed: boolean | null
+          priority: string
+          recurring: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          category: string
+          completed_at?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          due_date?: string | null
+          hate_points?: number
+          household_id?: string | null
+          icon: string
+          id?: string
+          is_completed?: boolean | null
+          priority?: string
+          recurring?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string
+          completed_at?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          due_date?: string | null
+          hate_points?: number
+          household_id?: string | null
+          icon?: string
+          id?: string
+          is_completed?: boolean | null
+          priority?: string
+          recurring?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chores_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      household_members: {
+        Row: {
+          household_id: string | null
+          id: string
+          joined_at: string | null
+          role: string | null
+          user_id: string | null
+        }
+        Insert: {
+          household_id?: string | null
+          id?: string
+          joined_at?: string | null
+          role?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          household_id?: string | null
+          id?: string
+          joined_at?: string | null
+          role?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "household_members_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      households: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          created_at: string | null
+          id: string
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string | null
+          id: string
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string | null
+          id?: string
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

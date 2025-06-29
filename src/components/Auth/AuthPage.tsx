@@ -3,32 +3,8 @@ import React, { useState } from 'react';
 import LoginForm from './LoginForm';
 import SignupForm from './SignupForm';
 
-interface AuthPageProps {
-  onAuth: (user: { id: string; name: string; email: string }) => void;
-}
-
-const AuthPage = ({ onAuth }: AuthPageProps) => {
+const AuthPage = () => {
   const [isLogin, setIsLogin] = useState(true);
-
-  const handleLogin = (email: string, password: string) => {
-    // Simulate authentication
-    console.log('Login attempt:', { email, password });
-    onAuth({
-      id: '1',
-      name: 'John Doe',
-      email: email
-    });
-  };
-
-  const handleSignup = (email: string, password: string, name: string) => {
-    // Simulate registration
-    console.log('Signup attempt:', { email, password, name });
-    onAuth({
-      id: '1',
-      name: name,
-      email: email
-    });
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center p-4">
@@ -39,9 +15,9 @@ const AuthPage = ({ onAuth }: AuthPageProps) => {
         </div>
         
         {isLogin ? (
-          <LoginForm onToggleMode={() => setIsLogin(false)} onLogin={handleLogin} />
+          <LoginForm onToggleMode={() => setIsLogin(false)} />
         ) : (
-          <SignupForm onToggleMode={() => setIsLogin(true)} onSignup={handleSignup} />
+          <SignupForm onToggleMode={() => setIsLogin(true)} />
         )}
       </div>
     </div>

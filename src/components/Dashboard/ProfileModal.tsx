@@ -7,6 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Camera, Home } from 'lucide-react';
+import { useProfile } from '@/hooks/useProfile';
+import { useToast } from '@/hooks/use-toast';
 
 interface User {
   id: string;
@@ -24,22 +26,44 @@ interface ProfileModalProps {
   onSave: (userData: User) => void;
 }
 
-const ProfileModal = ({ isOpen, onClose, user, onSave }: ProfileModalProps) => {
+const ProfileModal = ({ isOpen, onClose, user }: ProfileModalProps) => {
   const [formData, setFormData] = useState<User>(user);
   const [avatarPreview, setAvatarPreview] = useState<string>(user.avatar || '');
+  const [loading, setLoading] = useState(false);
+  
+  const { updateProfile } = useProfile();
+  const { toast } = useToast();
 
   useEffect(() => {
     setFormData(user);
     setAvatarPreview(user.avatar || '');
   }, [user, isOpen]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSave({
-      ...formData,
-      avatar: avatarPreview
+    setLoading(true);
+
+    const { error } = await updateProfile({
+      name: formData.name,
+      bio: formData.bio,
+      avatar_url: avatarPreview
     });
-    onClose();
+
+    if (error) {
+      toast({
+        title: "Update Failed",
+        description: "Failed to update profile. Please try again.",
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Profile Updated",
+        description: "Your profile has been successfully updated.",
+      });
+      onClose();
+    }
+
+    setLoading(false);
   };
 
   const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -106,20 +130,6 @@ const ProfileModal = ({ isOpen, onClose, user, onSave }: ProfileModalProps) => {
             />
           </div>
 
-          {/* Email */}
-          <div className="space-y-2">
-            <Label htmlFor="email" className="text-sm font-medium text-gray-700">Email Address</Label>
-            <Input
-              id="email"
-              type="email"
-              value={formData.email}
-              onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-              placeholder="Enter your email address"
-              className="border-gray-200 focus:border-[#22C55E] focus:ring-[#22C55E]"
-              required
-            />
-          </div>
-
           {/* Households */}
           <div className="space-y-2">
             <Label className="text-sm font-medium text-gray-700">Households</Label>
@@ -164,14 +174,16 @@ const ProfileModal = ({ isOpen, onClose, user, onSave }: ProfileModalProps) => {
               variant="outline" 
               onClick={onClose}
               className="px-6 py-2 border-gray-200 text-gray-700 hover:bg-gray-50"
+              disabled={loading}
             >
               Cancel
             </Button>
             <Button 
               type="submit" 
               className="bg-[#22C55E] hover:bg-[#16A34A] text-white px-6 py-2 shadow-sm"
+              disabled={loading}
             >
-              Save Profile
+              {loading ? 'Saving...' : 'Save Profile'}
             </Button>
           </div>
         </form>

@@ -4,20 +4,25 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
 
 interface SignupFormProps {
   onToggleMode: () => void;
-  onSignup: (email: string, password: string, name: string) => void;
 }
 
-const SignupForm = ({ onToggleMode, onSignup }: SignupFormProps) => {
+const SignupForm = ({ onToggleMode }: SignupFormProps) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{ name?: string; email?: string; password?: string; confirmPassword?: string }>({});
+  
+  const { signUp } = useAuth();
+  const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const newErrors: { name?: string; email?: string; password?: string; confirmPassword?: string } = {};
 
@@ -48,8 +53,26 @@ const SignupForm = ({ onToggleMode, onSignup }: SignupFormProps) => {
       return;
     }
 
+    setLoading(true);
     setErrors({});
-    onSignup(email, password, name);
+
+    const { error } = await signUp(email, password, name);
+
+    if (error) {
+      console.error('Signup error:', error);
+      toast({
+        title: "Signup Failed",
+        description: error.message || "An error occurred during signup",
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Account Created!",
+        description: "Please check your email to verify your account.",
+      });
+    }
+
+    setLoading(false);
   };
 
   return (
@@ -69,6 +92,7 @@ const SignupForm = ({ onToggleMode, onSignup }: SignupFormProps) => {
               value={name}
               onChange={(e) => setName(e.target.value)}
               className={`transition-all duration-200 ${errors.name ? 'border-red-500 focus:border-red-500' : 'focus:border-green-500'}`}
+              disabled={loading}
             />
             {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
           </div>
@@ -82,6 +106,7 @@ const SignupForm = ({ onToggleMode, onSignup }: SignupFormProps) => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className={`transition-all duration-200 ${errors.email ? 'border-red-500 focus:border-red-500' : 'focus:border-green-500'}`}
+              disabled={loading}
             />
             {errors.email && <p className="text-sm text-red-500">{errors.email}</p>}
           </div>
@@ -95,6 +120,7 @@ const SignupForm = ({ onToggleMode, onSignup }: SignupFormProps) => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className={`transition-all duration-200 ${errors.password ? 'border-red-500 focus:border-red-500' : 'focus:border-green-500'}`}
+              disabled={loading}
             />
             {errors.password && <p className="text-sm text-red-500">{errors.password}</p>}
           </div>
@@ -108,12 +134,17 @@ const SignupForm = ({ onToggleMode, onSignup }: SignupFormProps) => {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               className={`transition-all duration-200 ${errors.confirmPassword ? 'border-red-500 focus:border-red-500' : 'focus:border-green-500'}`}
+              disabled={loading}
             />
             {errors.confirmPassword && <p className="text-sm text-red-500">{errors.confirmPassword}</p>}
           </div>
 
-          <Button type="submit" className="w-full bg-green-600 hover:bg-green-700 text-white">
-            Create Account
+          <Button 
+            type="submit" 
+            className="w-full bg-green-600 hover:bg-green-700 text-white"
+            disabled={loading}
+          >
+            {loading ? 'Creating Account...' : 'Create Account'}
           </Button>
         </form>
 
@@ -121,6 +152,7 @@ const SignupForm = ({ onToggleMode, onSignup }: SignupFormProps) => {
           <button
             onClick={onToggleMode}
             className="text-green-600 hover:text-green-700 text-sm font-medium transition-colors"
+            disabled={loading}
           >
             Already have an account? Sign in
           </button>

@@ -4,18 +4,23 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
 
 interface LoginFormProps {
   onToggleMode: () => void;
-  onLogin: (email: string, password: string) => void;
 }
 
-const LoginForm = ({ onToggleMode, onLogin }: LoginFormProps) => {
+const LoginForm = ({ onToggleMode }: LoginFormProps) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+  
+  const { signIn } = useAuth();
+  const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const newErrors: { email?: string; password?: string } = {};
 
@@ -27,8 +32,6 @@ const LoginForm = ({ onToggleMode, onLogin }: LoginFormProps) => {
 
     if (!password) {
       newErrors.password = 'Password is required';
-    } else if (password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -36,8 +39,26 @@ const LoginForm = ({ onToggleMode, onLogin }: LoginFormProps) => {
       return;
     }
 
+    setLoading(true);
     setErrors({});
-    onLogin(email, password);
+
+    const { error } = await signIn(email, password);
+
+    if (error) {
+      console.error('Login error:', error);
+      toast({
+        title: "Login Failed",
+        description: error.message || "An error occurred during login",
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Welcome back!",
+        description: "You have successfully signed in.",
+      });
+    }
+
+    setLoading(false);
   };
 
   return (
@@ -57,6 +78,7 @@ const LoginForm = ({ onToggleMode, onLogin }: LoginFormProps) => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className={`transition-all duration-200 ${errors.email ? 'border-red-500 focus:border-red-500' : 'focus:border-green-500'}`}
+              disabled={loading}
             />
             {errors.email && <p className="text-sm text-red-500">{errors.email}</p>}
           </div>
@@ -70,12 +92,17 @@ const LoginForm = ({ onToggleMode, onLogin }: LoginFormProps) => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className={`transition-all duration-200 ${errors.password ? 'border-red-500 focus:border-red-500' : 'focus:border-green-500'}`}
+              disabled={loading}
             />
             {errors.password && <p className="text-sm text-red-500">{errors.password}</p>}
           </div>
 
-          <Button type="submit" className="w-full bg-green-600 hover:bg-green-700 text-white">
-            Sign In
+          <Button 
+            type="submit" 
+            className="w-full bg-green-600 hover:bg-green-700 text-white"
+            disabled={loading}
+          >
+            {loading ? 'Signing In...' : 'Sign In'}
           </Button>
         </form>
 
@@ -83,6 +110,7 @@ const LoginForm = ({ onToggleMode, onLogin }: LoginFormProps) => {
           <button
             onClick={onToggleMode}
             className="text-green-600 hover:text-green-700 text-sm font-medium transition-colors"
+            disabled={loading}
           >
             Don't have an account? Sign up
           </button>
