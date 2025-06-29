@@ -7,9 +7,10 @@ import { useChores } from '@/hooks/useChores';
 import Header from './Header';
 import ChoreModal from './ChoreModal';
 import ProfileModal from './ProfileModal';
-import FilterChips from './FilterChips';
+import ChoreSorting, { SortOption, SortDirection } from './ChoreSorting';
 import StatsSection from './StatsSection';
 import ChoreBoard from './ChoreBoard';
+import WelcomePage from '../Welcome/WelcomePage';
 
 const Dashboard = () => {
   const { signOut } = useAuth();
@@ -19,7 +20,8 @@ const Dashboard = () => {
   const [isChoreModalOpen, setIsChoreModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [editingChore, setEditingChore] = useState<any>();
-  const [activeFilters, setActiveFilters] = useState<string[]>([]);
+  const [sortBy, setSortBy] = useState<SortOption>('created_at');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
 
   // Set the first household as current if none selected
   React.useEffect(() => {
@@ -32,6 +34,15 @@ const Dashboard = () => {
   
   const currentHousehold = households.find(h => h.id === currentHouseholdId);
   const boardNames = households.map(h => h.name);
+
+  // Show welcome page if user has no households
+  if (households.length === 0) {
+    return (
+      <WelcomePage 
+        onHouseholdSelected={(householdId) => setCurrentHouseholdId(householdId)}
+      />
+    );
+  }
 
   const handleAddChore = () => {
     setEditingChore(undefined);
@@ -55,14 +66,6 @@ const Dashboard = () => {
     await toggleComplete(choreId);
   };
 
-  const handleRemoveFilter = (filter: string) => {
-    setActiveFilters(prev => prev.filter(f => f !== filter));
-  };
-
-  const handleAddFilter = (filter: string) => {
-    setActiveFilters(prev => [...prev, filter]);
-  };
-
   const handleBoardChange = (boardName: string) => {
     const household = households.find(h => h.name === boardName);
     if (household) {
@@ -70,13 +73,40 @@ const Dashboard = () => {
     }
   };
 
-  // Filter chores based on active filters
-  const filteredChores = activeFilters.length > 0 
-    ? chores.filter(chore => activeFilters.includes(chore.category))
-    : chores;
+  const handleSortChange = (newSortBy: SortOption, newDirection: SortDirection) => {
+    setSortBy(newSortBy);
+    setSortDirection(newDirection);
+  };
+
+  // Sort chores based on selected criteria
+  const sortedChores = [...chores].sort((a, b) => {
+    let comparison = 0;
+    
+    switch (sortBy) {
+      case 'category':
+        comparison = a.category.localeCompare(b.category);
+        break;
+      case 'priority':
+        const priorityOrder = { 'high': 3, 'medium': 2, 'low': 1 };
+        comparison = priorityOrder[a.priority] - priorityOrder[b.priority];
+        break;
+      case 'due_date':
+        const aDate = a.due_date ? new Date(a.due_date).getTime() : 0;
+        const bDate = b.due_date ? new Date(b.due_date).getTime() : 0;
+        comparison = aDate - bDate;
+        break;
+      case 'created_at':
+        comparison = new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime();
+        break;
+      default:
+        comparison = 0;
+    }
+    
+    return sortDirection === 'asc' ? comparison : -comparison;
+  });
 
   // Transform chores to match the expected format
-  const transformedChores = filteredChores.map(chore => ({
+  const transformedChores = sortedChores.map(chore => ({
     ...chore,
     dueDate: chore.due_date ? new Date(chore.due_date) : undefined,
     completedAt: chore.completed_at ? new Date(chore.completed_at) : undefined,
@@ -116,13 +146,17 @@ const Dashboard = () => {
         }}
       />
 
-      <FilterChips 
-        activeFilters={activeFilters}
-        onRemoveFilter={handleRemoveFilter}
-        onAddFilter={handleAddFilter}
-      />
+      <div className="px-4 py-4 md:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <ChoreSorting 
+            sortBy={sortBy}
+            sortDirection={sortDirection}
+            onSortChange={handleSortChange}
+          />
+        </div>
+      </div>
 
-      <main className="px-4 py-6 md:px-6 lg:px-8">
+      <main className="px-4 py-2 md:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           {/* Stats Section */}
           <StatsSection chores={transformedChores} />
