@@ -58,10 +58,16 @@ export const useChores = (householdId?: string) => {
         if (error) {
           console.error('Error fetching chores:', error);
         } else {
-          setChores(data?.map(chore => ({
+          const transformedChores = data?.map(chore => ({
             ...chore,
-            assignments: chore.chore_assignments || []
-          })) || []);
+            priority: chore.priority as 'low' | 'medium' | 'high',
+            recurring: chore.recurring as 'none' | 'daily' | 'weekly' | 'monthly',
+            assignments: chore.chore_assignments?.map((assignment: any) => ({
+              user_id: assignment.user_id,
+              profiles: assignment.profiles || { name: 'Unknown', avatar_url: null }
+            })) || []
+          })) || [];
+          setChores(transformedChores);
         }
       } catch (error) {
         console.error('Error:', error);
@@ -101,13 +107,23 @@ export const useChores = (householdId?: string) => {
     if (!user || !householdId) return { error: 'Missing user or household' };
 
     try {
+      // Prepare data for database insert
+      const insertData = {
+        title: choreData.title || '',
+        description: choreData.description,
+        category: choreData.category || '',
+        icon: choreData.icon || '',
+        hate_points: choreData.hate_points || 1,
+        priority: choreData.priority || 'medium',
+        recurring: choreData.recurring || 'none',
+        due_date: choreData.due_date,
+        household_id: householdId,
+        created_by: user.id
+      };
+
       const { data, error } = await supabase
         .from('chores')
-        .insert({
-          ...choreData,
-          household_id: householdId,
-          created_by: user.id
-        })
+        .insert(insertData)
         .select()
         .single();
 
@@ -135,9 +151,22 @@ export const useChores = (householdId?: string) => {
 
   const updateChore = async (choreId: string, updates: Partial<Chore>) => {
     try {
+      // Prepare updates for database
+      const updateData: any = {};
+      if (updates.title !== undefined) updateData.title = updates.title;
+      if (updates.description !== undefined) updateData.description = updates.description;
+      if (updates.category !== undefined) updateData.category = updates.category;
+      if (updates.icon !== undefined) updateData.icon = updates.icon;
+      if (updates.hate_points !== undefined) updateData.hate_points = updates.hate_points;
+      if (updates.priority !== undefined) updateData.priority = updates.priority;
+      if (updates.recurring !== undefined) updateData.recurring = updates.recurring;
+      if (updates.due_date !== undefined) updateData.due_date = updates.due_date;
+      if (updates.is_completed !== undefined) updateData.is_completed = updates.is_completed;
+      if (updates.completed_at !== undefined) updateData.completed_at = updates.completed_at;
+
       const { error } = await supabase
         .from('chores')
-        .update(updates)
+        .update(updateData)
         .eq('id', choreId);
 
       if (error) {
