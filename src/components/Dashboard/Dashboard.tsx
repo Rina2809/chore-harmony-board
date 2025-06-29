@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
@@ -96,7 +95,9 @@ const Dashboard = () => {
         comparison = aDate - bDate;
         break;
       case 'created_at':
-        comparison = new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime();
+        const aCreated = a.created_at ? new Date(a.created_at).getTime() : 0;
+        const bCreated = b.created_at ? new Date(b.created_at).getTime() : 0;
+        comparison = aCreated - bCreated;
         break;
       default:
         comparison = 0;
@@ -112,6 +113,7 @@ const Dashboard = () => {
     completedAt: chore.completed_at ? new Date(chore.completed_at) : undefined,
     hatePoints: chore.hate_points,
     isCompleted: chore.is_completed,
+    created_at: chore.created_at,
     assignees: chore.assignments.map(assignment => ({
       id: assignment.user_id,
       name: assignment.profiles?.name || 'Unknown',

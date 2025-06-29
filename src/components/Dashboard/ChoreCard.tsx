@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -18,6 +17,7 @@ export interface Chore {
   recurring?: 'daily' | 'weekly' | 'monthly' | 'none';
   completedAt?: Date;
   isCompleted: boolean;
+  created_at?: string;
 }
 
 interface ChoreCardProps {
