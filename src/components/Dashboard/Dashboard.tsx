@@ -55,11 +55,15 @@ const Dashboard = () => {
   };
 
   const handleSaveChore = async (choreData: any) => {
+    console.log('Saving chore:', choreData);
     if (editingChore) {
+      console.log('Updating existing chore:', editingChore.id);
       await updateChore(editingChore.id, choreData);
     } else {
+      console.log('Adding new chore');
       await addChore(choreData);
     }
+    console.log('Chore save completed');
   };
 
   const handleToggleComplete = async (choreId: string) => {
@@ -121,6 +125,9 @@ const Dashboard = () => {
       avatar: assignment.profiles?.avatar_url
     }))
   }));
+
+  console.log('Chores from hook:', chores);
+  console.log('Transformed chores:', transformedChores);
 
   if (!profile) {
     return (
