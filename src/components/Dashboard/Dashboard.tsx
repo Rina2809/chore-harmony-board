@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
@@ -118,7 +117,6 @@ const Dashboard = () => {
     completedAt: chore.completed_at ? new Date(chore.completed_at) : undefined,
     hatePoints: chore.hate_points,
     isCompleted: chore.is_completed,
-    created_at: chore.created_at,
     assignees: chore.assignments.map(assignment => ({
       id: assignment.user_id,
       name: assignment.profiles?.name || 'Unknown',
