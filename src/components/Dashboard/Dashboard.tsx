@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
@@ -185,6 +184,7 @@ const Dashboard = () => {
         onSave={handleSaveChore}
         chore={editingChore}
         isEditing={!!editingChore}
+        householdId={currentHouseholdId}
       />
 
       <ProfileModal

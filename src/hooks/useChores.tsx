@@ -41,6 +41,7 @@ export const useChores = (householdId?: string) => {
 
     const fetchChores = async () => {
       try {
+        console.log('Fetching chores for household:', householdId);
         const { data, error } = await supabase
           .from('chores')
           .select(`
@@ -59,6 +60,7 @@ export const useChores = (householdId?: string) => {
         if (error) {
           console.error('Error fetching chores:', error);
         } else {
+          console.log('Raw chore data from database:', data);
           const transformedChores = data?.map(chore => ({
             ...chore,
             priority: chore.priority as 'low' | 'medium' | 'high',
@@ -68,6 +70,7 @@ export const useChores = (householdId?: string) => {
               profiles: assignment.profiles || { name: 'Unknown', avatar_url: null }
             })) || []
           })) || [];
+          console.log('Transformed chores:', transformedChores);
           setChores(transformedChores);
         }
       } catch (error) {

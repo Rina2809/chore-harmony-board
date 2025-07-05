@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -10,16 +9,18 @@ import { Chore } from './ChoreCard';
 import CategorySection from './CategorySection';
 import HatePointsSection from './HatePointsSection';
 import DateSection from './DateSection';
+import AssigneeSection from './AssigneeSection';
 
 interface ChoreModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (chore: Partial<Chore>) => void;
+  onSave: (chore: Partial<Chore> & { assignees?: string[] }) => void;
   chore?: Chore;
   isEditing?: boolean;
+  householdId: string;
 }
 
-const ChoreModal = ({ isOpen, onClose, onSave, chore, isEditing = false }: ChoreModalProps) => {
+const ChoreModal = ({ isOpen, onClose, onSave, chore, isEditing = false, householdId }: ChoreModalProps) => {
   const [formData, setFormData] = useState<Partial<Chore>>({
     title: '',
     description: '',
@@ -32,11 +33,13 @@ const ChoreModal = ({ isOpen, onClose, onSave, chore, isEditing = false }: Chore
   });
 
   const [dueDate, setDueDate] = useState<Date>();
+  const [selectedAssignees, setSelectedAssignees] = useState<string[]>([]);
 
   useEffect(() => {
     if (chore && isEditing) {
       setFormData(chore);
       setDueDate(chore.dueDate);
+      setSelectedAssignees(chore.assignees?.map(a => a.id) || []);
     } else {
       setFormData({
         title: '',
@@ -49,6 +52,7 @@ const ChoreModal = ({ isOpen, onClose, onSave, chore, isEditing = false }: Chore
         assignees: []
       });
       setDueDate(undefined);
+      setSelectedAssignees([]);
     }
   }, [chore, isEditing, isOpen]);
 
@@ -59,9 +63,13 @@ const ChoreModal = ({ isOpen, onClose, onSave, chore, isEditing = false }: Chore
     const choreData = {
       ...formData,
       dueDate,
+      due_date: dueDate?.toISOString(),
+      hate_points: formData.hatePoints,
+      assignees: selectedAssignees,
       id: isEditing ? chore?.id : Date.now().toString(),
     };
 
+    console.log('Submitting chore data:', choreData);
     onSave(choreData);
     onClose();
   };
@@ -117,6 +125,13 @@ const ChoreModal = ({ isOpen, onClose, onSave, chore, isEditing = false }: Chore
           <HatePointsSection
             hatePoints={formData.hatePoints || 1}
             onHatePointsChange={handleHatePointsChange}
+          />
+
+          {/* Assignee Selection */}
+          <AssigneeSection
+            householdId={householdId}
+            selectedAssignees={selectedAssignees}
+            onAssigneesChange={setSelectedAssignees}
           />
 
           {/* Description - full width */}
