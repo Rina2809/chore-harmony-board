@@ -2,8 +2,7 @@
 import React from 'react';
 import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import { Check, Plus, X } from 'lucide-react';
+import { Check, X } from 'lucide-react';
 import { useHouseholdMembers } from '@/hooks/useHouseholdMembers';
 
 interface AssigneeSectionProps {

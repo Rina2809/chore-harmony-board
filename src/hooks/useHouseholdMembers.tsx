@@ -11,7 +11,7 @@ interface HouseholdMember {
   profiles: {
     name: string;
     avatar_url?: string;
-  };
+  } | null;
 }
 
 export const useHouseholdMembers = (householdId?: string) => {
@@ -28,6 +28,7 @@ export const useHouseholdMembers = (householdId?: string) => {
 
     const fetchMembers = async () => {
       try {
+        console.log('Fetching household members for household:', householdId);
         const { data, error } = await supabase
           .from('household_members')
           .select(`
@@ -41,11 +42,16 @@ export const useHouseholdMembers = (householdId?: string) => {
 
         if (error) {
           console.error('Error fetching household members:', error);
+          setMembers([]);
         } else {
-          setMembers(data || []);
+          console.log('Household members data:', data);
+          // Filter out members without valid profiles
+          const validMembers = (data || []).filter(member => member.profiles !== null);
+          setMembers(validMembers);
         }
       } catch (error) {
         console.error('Error:', error);
+        setMembers([]);
       } finally {
         setLoading(false);
       }

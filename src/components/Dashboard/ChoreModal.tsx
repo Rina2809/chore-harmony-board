@@ -60,13 +60,18 @@ const ChoreModal = ({ isOpen, onClose, onSave, chore, isEditing = false, househo
     e.preventDefault();
     if (!formData.title?.trim()) return;
 
+    // Create the chore data with proper typing
     const choreData = {
-      ...formData,
-      dueDate,
-      due_date: dueDate?.toISOString(),
+      title: formData.title,
+      description: formData.description,
+      category: formData.category,
+      icon: formData.icon,
+      priority: formData.priority,
+      recurring: formData.recurring,
       hate_points: formData.hatePoints,
-      assignees: selectedAssignees,
-      id: isEditing ? chore?.id : Date.now().toString(),
+      due_date: dueDate?.toISOString(),
+      assignees: selectedAssignees, // This will be handled properly in the hook
+      id: isEditing ? chore?.id : undefined,
     };
 
     console.log('Submitting chore data:', choreData);
