@@ -17,6 +17,7 @@ interface Chore {
   completed_at?: string;
   household_id: string;
   created_by: string;
+  created_at?: string;
   assignments: Array<{
     user_id: string;
     profiles: {
@@ -103,7 +104,7 @@ export const useChores = (householdId?: string) => {
     };
   }, [user, householdId]);
 
-  const addChore = async (choreData: Partial<Chore>) => {
+  const addChore = async (choreData: Partial<Chore> & { assignees?: string[] }) => {
     if (!user || !householdId) return { error: 'Missing user or household' };
 
     try {
@@ -132,8 +133,22 @@ export const useChores = (householdId?: string) => {
         return { error };
       }
 
-      // Assign to current user by default
-      if (data) {
+      // Handle assignees
+      if (data && choreData.assignees && choreData.assignees.length > 0) {
+        const assignments = choreData.assignees.map(userId => ({
+          chore_id: data.id,
+          user_id: userId
+        }));
+
+        const { error: assignmentError } = await supabase
+          .from('chore_assignments')
+          .insert(assignments);
+
+        if (assignmentError) {
+          console.error('Error creating assignments:', assignmentError);
+        }
+      } else if (data) {
+        // Assign to current user by default if no assignees specified
         await supabase
           .from('chore_assignments')
           .insert({
@@ -149,7 +164,7 @@ export const useChores = (householdId?: string) => {
     }
   };
 
-  const updateChore = async (choreId: string, updates: Partial<Chore>) => {
+  const updateChore = async (choreId: string, updates: Partial<Chore> & { assignees?: string[] }) => {
     try {
       // Prepare updates for database
       const updateData: any = {};
@@ -172,6 +187,31 @@ export const useChores = (householdId?: string) => {
       if (error) {
         console.error('Error updating chore:', error);
         return { error };
+      }
+
+      // Handle assignee updates if provided
+      if (updates.assignees !== undefined) {
+        // First, remove existing assignments
+        await supabase
+          .from('chore_assignments')
+          .delete()
+          .eq('chore_id', choreId);
+
+        // Then add new assignments
+        if (updates.assignees.length > 0) {
+          const assignments = updates.assignees.map(userId => ({
+            chore_id: choreId,
+            user_id: userId
+          }));
+
+          const { error: assignmentError } = await supabase
+            .from('chore_assignments')
+            .insert(assignments);
+
+          if (assignmentError) {
+            console.error('Error updating assignments:', assignmentError);
+          }
+        }
       }
 
       return { error: null };
